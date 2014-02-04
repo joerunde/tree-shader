@@ -1,0 +1,108 @@
+##OpenGL GLIB
+Perspective 70
+Noise3D 256
+
+Texture2D 6 2048 2048
+Texture2D 7 trunk_texture.bmp
+Texture2D 8 leaf.bmp
+RenderToTexture 6
+Clear
+
+Vertex tex.vert
+Fragment tex.frag
+Program tex
+
+QuadXY 0 1. 1 1
+
+RenderToTexture
+Clear
+LookAt 0 0 6   0 0 0   0 1 0
+
+Vertex         tree.vert
+Fragment       tree.frag
+TessControl    tree.tcs
+TessEvaluation tree.tes
+# disable the geometry shader if you want to do isolines:
+Geometry       tree.geom
+Program Trees   			\
+			uNoiseAmp <0 0 4>		\
+			uNoiseFreq <0 1 5>		\
+			uTreeTex 6				\
+			uTrunkTex 7				\
+			uLeafTex 8				\
+			uDetail <3, 36, 64>		\
+			uShrink <0. 1. 1.>		\
+			uFlat <false>			\
+			uKa <0. .2 1.>			\
+			uKd <0. .8 1.>			\
+			uLightX <-10. 5. 10.>  uLightY <-10. 0. 10.>  uLightZ <-10. 10. 10.>
+
+NumPatchVertices 1
+
+glBegin gl_patches
+	glVertex 0. 0. 0. 0
+	glVertex 0. 0. 0. 1
+	glVertex 0. 0. 0. 2
+	glVertex 0. 0. 0. 3
+	glVertex 0. 0. 0. 4
+	glVertex 0. 0. 0. 5
+	glVertex 0. 0. 0. 6
+	glVertex 0. 0. 0. 7
+	glVertex 0. 0. 0. 8
+	glVertex 0. 0. 0. 9
+	glVertex 0. 0. 0. 10
+	glVertex 0. 0. 0. 11
+	glVertex 0. 0. 0. 12
+	glVertex 0. 0. 0. 13
+	glVertex 0. 0. 0. 14
+	glVertex 0. 0. 0. 15
+	glVertex 0. 0. 0. 16
+	glVertex 0. 0. 0. 17
+	glVertex 0. 0. 0. 18
+	glVertex 0. 0. 0. 19
+	glVertex 0. 0. 0. 20
+	glVertex 0. 0. 0. 21
+	glVertex 0. 0. 0. 22
+	glVertex 0. 0. 0. 23
+	glVertex 0. 0. 0. 24
+	glVertex 0. 0. 0. 25
+	glVertex 0. 0. 0. 26
+	glVertex 0. 0. 0. 27
+	glVertex 0. 0. 0. 28
+	glVertex 0. 0. 0. 29
+	glVertex 0. 0. 0. 30
+	glVertex 0. 0. 0. 31
+	glVertex 0. 0. 0. 32
+	glVertex 0. 0. 0. 33
+	glVertex 0. 0. 0. 34
+	glVertex 0. 0. 0. 35
+	glVertex 0. 0. 0. 36
+	glVertex 0. 0. 0. 37
+	glVertex 0. 0. 0. 38
+	glVertex 0. 0. 0. 39
+	glVertex 0. 0. 0. 40
+	glVertex 0. 0. 0. 41
+	glVertex 0. 0. 0. 42
+	glVertex 0. 0. 0. 43
+	glVertex 0. 0. 0. 44
+	glVertex 0. 0. 0. 45
+	glVertex 0. 0. 0. 46
+	glVertex 0. 0. 0. 47
+	glVertex 0. 0. 0. 48
+	glVertex 0. 0. 0. 49
+	glVertex 0. 0. 0. 50
+	glVertex 0. 0. 0. 51
+	glVertex 0. 0. 0. 52
+	glVertex 0. 0. 0. 53
+	glVertex 0. 0. 0. 54
+	glVertex 0. 0. 0. 55
+	glVertex 0. 0. 0. 56
+	glVertex 0. 0. 0. 57
+	glVertex 0. 0. 0. 58
+	glVertex 0. 0. 0. 59
+	glVertex 0. 0. 0. 60
+	glVertex 0. 0. 0. 61
+	glVertex 0. 0. 0. 62
+	glVertex 0. 0. 0. 63
+	
+glEnd

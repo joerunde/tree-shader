@@ -1,0 +1,28 @@
+#version 400 compatibility
+// #include "../gstap.h"
+#extension GL_ARB_tessellation_shader : enable
+
+in float vRadius[ ];
+in vec3  vCenter[ ];
+
+patch out float tcRadius;
+patch out vec3  tcCenter;
+
+uniform float uDetail;
+
+layout( vertices = 1 )  out;
+
+void main( )
+{
+	gl_out[ gl_InvocationID ].gl_Position = gl_in[ 0 ].gl_Position;	// (0,0,0,1)
+
+	tcCenter = vCenter[ 0 ];
+	tcRadius = 1;
+
+	gl_TessLevelOuter[0] = uDetail; //2
+	gl_TessLevelOuter[1] = uDetail;
+	gl_TessLevelOuter[2] = uDetail; //2
+	gl_TessLevelOuter[3] = uDetail;
+	gl_TessLevelInner[0] = uDetail;
+	gl_TessLevelInner[1] = uDetail;
+}

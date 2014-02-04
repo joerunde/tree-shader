@@ -1,0 +1,151 @@
+#version 400 compatibility
+//#include "../gstap.h"
+#extension GL_ARB_tessellation_shader : enable
+uniform sampler3D Noise3;
+
+uniform float uNoiseAmp;
+uniform float uNoiseFreq;
+uniform float uDetail;
+uniform sampler2D uTreeTex;
+
+layout( quads, equal_spacing, ccw)  in;
+
+patch in float tcRadius;
+patch in vec3  tcCenter;
+
+out vec3 teNormal;
+out vec2 teUV;
+out int teLeaf;
+
+const float PI = 3.14159265;
+
+vec3 RotateNormal( float angx, float angy, vec3 n )
+{
+        float cx = cos( angx );
+        float sx = sin( angx );
+        float cy = cos( angy );
+        float sy = sin( angy );
+
+        // rotate about x:
+        float yp =  n.y*cx - n.z*sx;
+        n.z      =  n.y*sx + n.z*cx;
+        n.y      =  yp;
+
+        // rotate about y:
+        float xp =  n.x*cy + n.z*sy;
+        n.z      = -n.x*sy + n.z*cy;
+        n.x      =  xp;
+
+        return normalize( n );
+}
+
+void main( )
+{
+	vec3 p = gl_in[0].gl_Position.xyz;
+
+	float u = gl_TessCoord.x;
+	float v = gl_TessCoord.y;
+	
+	/*get correct u, v */
+	p.x += u;
+	p.y += v;
+	u = p.x;
+	v = p.y;
+	u /= 8.;
+	v /= 8.;
+	
+	float uBranch, vBranch;
+	float deltaUV = 1.f / uDetail / 8.;
+	float branchLength = 2;
+	
+	uBranch = u;
+	vBranch = v;
+	
+	bool inBranch = false;
+	
+	vec3 xyz;
+	float theta = 2. * PI * ( u - .5 );
+	float costheta = cos(theta);
+	float sintheta = sin(theta);
+	float skinnyFactor = (1 - v/1.2);
+	xyz = vec3(costheta * tcRadius * skinnyFactor, v * 8, sintheta * tcRadius * skinnyFactor);
+	teNormal = vec3(costheta, 0, sintheta);
+	
+	vec3 treeCoord = texture2D(uTreeTex, vec2(u, v)).xyz;
+	if(treeCoord.x != 1 || treeCoord.y != 1 || treeCoord.z != 1)
+	{
+		inBranch = true;
+	}
+	
+	teUV = vec2(u, v);
+	teLeaf = 0;
+	if(inBranch)
+	{
+		float branchNormalTheta = 2. * PI * (treeCoord.y - .5);
+		float costhetaBN = cos(branchNormalTheta);
+		float sinthetaBN = sin(branchNormalTheta);
+		vec3 branchNormal = vec3(costhetaBN, 0, sinthetaBN);
+		
+		vec4 nz = texture3D(Noise3, uNoiseFreq * vec3(treeCoord.yz, .3));
+		float rx = nz.r + nz.g + nz.b + nz.a;
+		rx -= 1.666;
+		rx -= .5;
+		nz = texture3D(Noise3, uNoiseFreq * vec3(treeCoord.yz, .7));
+		float ry = nz.r + nz.g + nz.b + nz.a;
+		ry -= 1.666;
+		ry -= .5;
+		branchNormal = RotateNormal(uNoiseAmp * rx, .5 * uNoiseAmp * ry, branchNormal);
+		
+		vec2 toCenterOfBranch = vec2(treeCoord.y - u, treeCoord.z - v);
+		if(treeCoord.y < .5 && u > .5)
+			toCenterOfBranch = vec2(treeCoord.y + 1 - u, treeCoord.z - v);
+		if(treeCoord.y > .5 && u < .5)
+			toCenterOfBranch = vec2(treeCoord.y - 1 - u, treeCoord.z - v);
+		
+		float distance = length(toCenterOfBranch);
+		
+		//new v for the branch cylinder
+		float nV = distance;
+		nV /= treeCoord.x;
+		nV *= -1;
+		nV += 1;
+		
+		//u for the distance around the branch, basically a branch position theta
+		float nU = atan(-toCenterOfBranch.y / -toCenterOfBranch.x);
+		if(toCenterOfBranch.x > 0)
+		{
+			nU -= PI;
+		}
+		
+		vec3 yvec = vec3(0, 1, 0);
+		vec3 xvec = vec3(cos(branchNormalTheta + PI/2.), 0, sin(branchNormalTheta + PI/2.));
+		vec3 newNorm = xvec * cos(nU) + yvec * sin(nU);
+		teNormal = normalize(newNorm);
+		
+		xyz += branchNormal * nV * treeCoord.x * 80;
+		xyz.y += toCenterOfBranch.y * PI;
+		xyz += teNormal * nV * treeCoord.x * 3;
+
+		float distXZ = length(xyz.xz);
+		distXZ -= .5;
+		distXZ /= treeCoord.x;
+		xyz.y += pow(distXZ, 3) / (100000);
+		
+		teUV = vec2(nU, nV * 8);
+		
+		int leafTest = int(nV * 100);
+		if( (nV*100 - leafTest) < .05 && leafTest > 20)
+			teLeaf = 1;
+	}
+	
+	if(v == 0)
+	{
+		xyz.y -= 8;
+		teUV = vec2(u, 1);
+		teLeaf = 0;
+	}
+	
+	xyz += tcCenter;
+	
+	gl_Position = vec4(xyz,1.);
+}
